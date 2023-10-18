@@ -1,9 +1,9 @@
 with "config/stm32f746disco_config.gpr";
-with "config/stm32_svd_config.gpr";
+with "config/stm32_hal_config.gpr";
 project Stm32f746disco is
 
    for Target use "arm-eabi";
-   for Runtime ("Ada") use "light-tasking-" & stm32_svd_config.DEVICE & "disco";
+   for Runtime ("Ada") use "light-tasking-" & stm32_hal_config.DEVICE & "disco";
 
    for Library_Name use "Stm32f746disco";
    for Library_Version use Project'Library_Name & ".so." & Stm32f746disco_Config.Crate_Version;
