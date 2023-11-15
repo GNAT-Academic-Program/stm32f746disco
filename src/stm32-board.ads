@@ -42,6 +42,7 @@ with STM32.DMA.Interrupts;  use STM32.DMA.Interrupts;
 with STM32.FMC;             use STM32.FMC;
 with STM32.GPIO;            use STM32.GPIO;
 with STM32.I2C;             use STM32.I2C;
+with STM32.USART;           use STM32.USART;
 
 use STM32;
 
@@ -132,14 +133,35 @@ package STM32.Board is
             or else
             As_Port_Id (Port) = I2C_Id_3;
 
-      ----------------------
-   -- Setup_I2C_Master --
-   ----------------------
-
    procedure Setup_I2C_Master (Port           : in out I2C_Port'Class;
                                SDA, SCL       : GPIO_Point;
                                SDA_AF, SCL_AF : GPIO_Alternate_Function;
                                Clock_Speed    : UInt32);
+
+   -----------
+   -- USART --
+   -----------
+
+   procedure Initialize_UART_GPIO (Port : in out USART_Port)
+     with
+   --  UART 2, 3, 4, and 5 are not accessible on this board
+     Pre => As_Port_Id (Port) in
+      USART_Id_1 | UART_Id_4 | UART_Id_5 | USART_Id_6 | UART_Id_7;
+   
+   procedure Setup_USART (Port                 : in out USART_Port'Class;
+                          TX, RX, CLK          : GPIO_Point;
+                          TX_AF, RX_AF, CLK_AF : GPIO_Alternate_Function;
+                          Baud_Rate            : UInt32;
+                          Synchronous          : Boolean := True);
+
+   procedure Setup_UART (Port         : in out USART_Port'Class;
+                         TX, RX       : GPIO_Point;
+                         TX_AF, RX_AF : GPIO_Alternate_Function;
+                         Baud_Rate    : UInt32);
+
+   Serial : USART_Port renames USART_1;
+
+   procedure Setup_Serial (Baud_Rate : UInt32);
 
    --------------------------------
    -- Screen/Touch panel devices --

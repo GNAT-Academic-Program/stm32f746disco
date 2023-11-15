@@ -178,6 +178,109 @@ package body STM32.Board is
       Port.Configure (I2C_Conf);
    end Setup_I2C_Master;
 
+   --------------------------
+   -- Initialize_UART_GPIO --
+   --------------------------
+
+   procedure Initialize_UART_GPIO (Port : in out USART_Port)
+   is
+      Id : constant USART_Port_Id := As_Port_Id (Port);
+      Points     : constant GPIO_Points (1 .. 3) :=
+                     (if Id = USART_Id_1 then (PA9, PB7)     --  STLINK port
+                      elsif Id = USART_Id_6 then (PC6, PC7)  --  CLK on PG6
+                      elsif Id = UART_ID_7 then (PF7, PF6)   --  RTS on PF8, CTS on PF9
+                      else  (PA0, PA0));
+      AF : constant GPIO_Alternate_Function := 
+                     (if Id in USART_Id_1 | UART_Id_5 then GPIO_AF_USART1_7
+                      else GPIO_AF_UART4_8);
+
+   begin
+      if Id in USART_Id_2 | USART_Id_3 | UART_Id_8 then
+         raise Unknown_Device with
+           "This USART_Port cannot be used on this board";
+      end if;
+
+      Enable_Clock (Points);
+
+      Configure_IO (Points,
+                    (Mode           => Mode_AF,
+                     AF             => AF,
+                     AF_Speed       => Speed_25MHz,
+                     AF_Output_Type => Open_Drain,
+                     Resistors      => Floating));
+      Lock (Points);
+   end Initialize_UART_GPIO;
+
+   -----------------
+   -- Setup_USART --
+   -----------------
+
+   procedure Setup_USART (Port                 : in out USART_Port'Class;
+                          TX, RX, CLK          : GPIO_Point;
+                          TX_AF, RX_AF, CLK_AF : GPIO_Alternate_Function;
+                          Baud_Rate            : UInt32;
+                          Synchronous          : Boolean := True)
+   is
+      USART_Conf : USART_Configuration;
+   begin
+      --  GPIO --
+      Enable_Clock (TX & RX & CLK);
+
+      Configure_IO (TX,
+                    (Mode           => Mode_AF,
+                     AF             => TX_AF,
+                     AF_Speed       => Speed_High,
+                     AF_Output_Type => Open_Drain,
+                     Resistors      => Floating));
+      Configure_IO (RX,
+                    (Mode           => Mode_AF,
+                     AF             => RX_AF,
+                     AF_Speed       => Speed_High,
+                     AF_Output_Type => Open_Drain,
+                     Resistors      => Floating));
+      Lock (TX & RX);
+
+      if Synchronous then
+         Configure_IO (CLK,
+                       (Mode           => Mode_AF,
+                        AF             => CLK_AF,
+                        AF_Speed       => Speed_High,
+                        AF_Output_Type => Open_Drain,
+                        Resistors      => Floating));
+         Lock (CLK);
+      end if;
+
+      -- USART --
+
+      Enable_Clock (Port);
+      delay until Clock + Milliseconds (200);
+      Reset (Port);
+
+      USART_Conf.Mode := (
+         if Synchronous then USART.Synchronous else USART.Asynchronous
+      );
+
+      USART_Conf.Baud_Rate := Baud_Rate;
+      --  USART_Conf.Enable_DMA  := True;
+
+      Port.Configure (USART_Conf);
+   end Setup_USART;
+
+   procedure Setup_UART (Port         : in out USART_Port'Class;
+                         TX, RX       : GPIO_Point;
+                         TX_AF, RX_AF : GPIO_Alternate_Function;
+                         Baud_Rate    : UInt32)
+   is
+   begin
+      Setup_USART (Port, TX, RX, PA0, TX_AF, RX_AF, GPIO_AF_USART1_7, Baud_Rate);
+   end Setup_UART;
+
+   procedure Setup_Serial (Baud_Rate : UInt32)
+   is
+   begin
+      Setup_UART (Serial, PA9, PB7, GPIO_AF_USART1_7, GPIO_AF_USART1_7, Baud_Rate);
+   end Setup_Serial;
+
    --  --------------------------------
    --  -- Configure_User_Button_GPIO --
    --  --------------------------------
