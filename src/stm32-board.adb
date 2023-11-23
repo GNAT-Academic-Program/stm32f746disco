@@ -272,7 +272,7 @@ package body STM32.Board is
                          Baud_Rate    : UInt32)
    is
    begin
-      Setup_USART (Port, TX, RX, PA0, TX_AF, RX_AF, GPIO_AF_USART1_7, Baud_Rate);
+      Setup_USART (Port, TX, RX, PA0, TX_AF, RX_AF, GPIO_AF_USART1_7, Baud_Rate, False);
    end Setup_UART;
 
    procedure Setup_Serial (Baud_Rate : UInt32)
