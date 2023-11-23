@@ -251,7 +251,6 @@ package body STM32.Board is
       end if;
 
       -- USART --
-
       Enable_Clock (Port);
       delay until Clock + Milliseconds (200);
       Reset (Port);
@@ -278,7 +277,7 @@ package body STM32.Board is
    procedure Setup_Serial (Baud_Rate : UInt32)
    is
    begin
-      Setup_UART (Serial, PA9, PB7, GPIO_AF_USART1_7, GPIO_AF_USART1_7, Baud_Rate);
+      Setup_UART (Serial, Serial_TX, Serial_RX, GPIO_AF_USART1_7, GPIO_AF_USART1_7, Baud_Rate);
    end Setup_Serial;
 
    --  --------------------------------

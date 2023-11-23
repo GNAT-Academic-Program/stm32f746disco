@@ -159,6 +159,9 @@ package STM32.Board is
                          TX_AF, RX_AF : GPIO_Alternate_Function;
                          Baud_Rate    : UInt32);
 
+   Serial_TX : GPIO_Point renames PA9;
+   Serial_RX : GPIO_Point renames PB7;
+
    Serial : USART_Port renames USART_1;
 
    procedure Setup_Serial (Baud_Rate : UInt32);
