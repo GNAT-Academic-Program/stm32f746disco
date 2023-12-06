@@ -132,7 +132,7 @@ package STM32.Board is
             or else
             As_Port_Id (Port) = I2C_Id_3;
 
-      ----------------------
+   ----------------------
    -- Setup_I2C_Master --
    ----------------------
 
@@ -204,9 +204,9 @@ package STM32.Board is
 
   --   SDCard_Device : aliased SDCard.SDCard_Controller (SDMMC_1'Access);
 
-   ------------------
-   --  User button --
-   ------------------
+   -----------------
+   -- User button --
+   -----------------
 
    User_Button_Point     : GPIO_Point renames PI11;
    User_Button_Interrupt : constant Interrupt_ID := Names.EXTI15_10_Interrupt;
