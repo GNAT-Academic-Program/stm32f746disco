@@ -178,15 +178,15 @@ package body STM32.Board is
       Port.Configure (I2C_Conf);
    end Setup_I2C_Master;
 
-   --  --------------------------------
-   --  -- Configure_User_Button_GPIO --
-   --  --------------------------------
+   --------------------------------
+   -- Configure_User_Button_GPIO --
+   --------------------------------
 
-   --  procedure Configure_User_Button_GPIO is
-   --  begin
-   --     Enable_Clock (User_Button_Point);
-   --     Configure_IO (User_Button_Point, (Mode_In, Resistors => Floating));
-   --  end Configure_User_Button_GPIO;
+   procedure Configure_User_Button_GPIO is
+   begin
+      Enable_Clock (User_Button_Point);
+      Configure_IO (User_Button_Point, (Mode_In, Resistors => Floating));
+   end Configure_User_Button_GPIO;
 begin
    Set_High_Speed_External_Clock (25000000);
    Initialize_SDRAM;
