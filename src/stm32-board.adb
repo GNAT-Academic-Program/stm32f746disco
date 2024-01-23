@@ -67,7 +67,7 @@ package body STM32.Board is
                      Resistors   => Floating));
    end Initialize_LEDs;
 
-      ---------------------------
+   ---------------------------
    -- Initialize_SDRAM_GPIO --
    ---------------------------
 
