@@ -2,7 +2,7 @@
 
 This repository contains an `STM32F746DISCO` BSP for Alire, streamlining hardware interaction for Ada and C applications on the board.
 
-<img width="200px" src="">
+<img width="200px" src="https://github.com/GNAT-Academic-Program/stm32f746disco/assets/1427158/13bb141e-ffa8-40fa-b760-82fd3a368679">
 
 ## Demos
 This package is a library. Usually, you create applications building upon this crate:
