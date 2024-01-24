@@ -67,7 +67,7 @@ package body STM32.Board is
                      Resistors   => Floating));
    end Initialize_LEDs;
 
-      ---------------------------
+   ---------------------------
    -- Initialize_SDRAM_GPIO --
    ---------------------------
 
@@ -280,15 +280,15 @@ package body STM32.Board is
       Setup_UART (Serial, Serial_TX, Serial_RX, GPIO_AF_USART1_7, GPIO_AF_USART1_7, Baud_Rate);
    end Setup_Serial;
 
-   --  --------------------------------
-   --  -- Configure_User_Button_GPIO --
-   --  --------------------------------
+   --------------------------------
+   -- Configure_User_Button_GPIO --
+   --------------------------------
 
-   --  procedure Configure_User_Button_GPIO is
-   --  begin
-   --     Enable_Clock (User_Button_Point);
-   --     Configure_IO (User_Button_Point, (Mode_In, Resistors => Floating));
-   --  end Configure_User_Button_GPIO;
+   procedure Configure_User_Button_GPIO is
+   begin
+      Enable_Clock (User_Button_Point);
+      Configure_IO (User_Button_Point, (Mode_In, Resistors => Floating));
+   end Configure_User_Button_GPIO;
 begin
    Set_High_Speed_External_Clock (25000000);
    Initialize_SDRAM;
