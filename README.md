@@ -4,6 +4,9 @@ This repository contains an `STM32F746DISCO` BSP for Alire, streamlining hardwar
 
 <img width="200px" src="https://github.com/GNAT-Academic-Program/stm32f746disco/assets/1427158/13bb141e-ffa8-40fa-b760-82fd3a368679">
 
+## Documentation
+- [Usefull read](https://github.com/GNAT-Academic-Program/stm32f746disco/blob/main/doc/um1907-discovery-kit-for-stm32f7-series-with-stm32f746ng-mcu-stmicroelectronics.pdf)
+
 ## Demos
 This package is a library. Usually, you create applications building upon this crate:
 - [stm32_blinky_demo](https://github.com/GNAT-Academic-Program/stm32_blinky_demo)
