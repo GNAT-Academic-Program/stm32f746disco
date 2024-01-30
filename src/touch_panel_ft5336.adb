@@ -37,7 +37,7 @@ with Ada.Unchecked_Conversion;
 with HAL.Touch_Panel;      use HAL.Touch_Panel;
 
 with STM32.Board;          use STM32.Board;
--- with STM32.Setup;
+--  with STM32.Setup;
 
 package body Touch_Panel_FT5336 is
 

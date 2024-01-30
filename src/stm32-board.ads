@@ -43,13 +43,14 @@ with STM32.FMC;             use STM32.FMC;
 with STM32.GPIO;            use STM32.GPIO;
 with STM32.I2C;             use STM32.I2C;
 with STM32.USART;           use STM32.USART;
+with STM32.USART.DMA;       use STM32.USART.DMA;
 
 use STM32;
 
--- with Audio;
+--  with Audio;
 with Touch_Panel_FT5336;
 with Framebuffer_RK043FN48H;
--- with SDCard;
+--  with SDCard;
 
 package STM32.Board is
    pragma Elaborate_Body;
@@ -147,8 +148,14 @@ package STM32.Board is
    --  UART 2, 3, 4, and 5 are not accessible on this board
      Pre => As_Port_Id (Port) in
       USART_Id_1 | UART_Id_4 | UART_Id_5 | USART_Id_6 | UART_Id_7;
-   
+
    procedure Setup_USART (Port                 : in out USART_Port'Class;
+                          TX, RX, CLK          : GPIO_Point;
+                          TX_AF, RX_AF, CLK_AF : GPIO_Alternate_Function;
+                          Baud_Rate            : UInt32;
+                          Synchronous          : Boolean := True);
+
+   procedure Setup_USART (Port                 : in out USART_Port_DMA'Class;
                           TX, RX, CLK          : GPIO_Point;
                           TX_AF, RX_AF, CLK_AF : GPIO_Alternate_Function;
                           Baud_Rate            : UInt32;
@@ -162,9 +169,24 @@ package STM32.Board is
    Serial_TX : GPIO_Point renames PA9;
    Serial_RX : GPIO_Point renames PB7;
 
-   Serial : USART_Port renames USART_1;
+   Serial : USART_Port_DMA renames USART_1_DMA;
 
    procedure Setup_Serial (Baud_Rate : UInt32);
+
+   DMA2_Stream0 : aliased DMA_Interrupt_Controller
+     (DMA_2'Access, Stream_0,
+      Ada.Interrupts.Names.DMA2_Stream2_Interrupt,
+      System.Interrupt_Priority'Last);
+
+   DMA2_Stream1 : aliased DMA_Interrupt_Controller
+     (DMA_2'Access, Stream_1,
+      Ada.Interrupts.Names.DMA2_Stream3_Interrupt,
+      System.Interrupt_Priority'Last);
+
+   USART_DMA_Config : aliased USART_DMA_Configuration :=
+     (TX_Controller => DMA2_Stream0'Access,
+      RX_Controller => DMA2_Stream1'Access,
+      others => <>);
 
    --------------------------------
    -- Screen/Touch panel devices --
@@ -176,58 +198,58 @@ package STM32.Board is
    Display     : Framebuffer_RK043FN48H.Frame_Buffer;
    Touch_Panel : Touch_Panel_FT5336.Touch_Panel;
 
-  --   -----------
-  --   -- Audio --
-  --   -----------
+   --  -----------
+   --  -- Audio --
+   --  -----------
 
-  --   Audio_I2C     : I2C_Port renames I2C_3;
-  --   Audio_I2C_SDA : STM32.GPIO.GPIO_Point renames STM32.Device.PH7;
-  --   Audio_I2C_SCL : STM32.GPIO.GPIO_Point renames STM32.Device.PH8;
-  --   Audio_I2C_AF  : STM32.GPIO_Alternate_Function renames STM32.Device.GPIO_AF_I2C3_4;
-  --   Audio_INT     : GPIO_Point renames PD6;
+   --  Audio_I2C     : I2C_Port renames I2C_3;
+   --  Audio_I2C_SDA : STM32.GPIO.GPIO_Point renames STM32.Device.PH7;
+   --  Audio_I2C_SCL : STM32.GPIO.GPIO_Point renames STM32.Device.PH8;
+   --  Audio_I2C_AF  : STM32.GPIO_Alternate_Function renames STM32.Device.GPIO_AF_I2C3_4;
+   --  Audio_INT     : GPIO_Point renames PD6;
 
-  --   --  Audio DMA configuration
-  --   Audio_DMA               : DMA_Controller renames DMA_2;
-  --   Audio_Out_DMA_Interrupt : Ada.Interrupts.Interrupt_ID renames
-  --                               Ada.Interrupts.Names.DMA2_Stream4_Interrupt;
-  --   Audio_DMA_Out_Stream    : DMA_Stream_Selector renames Stream_4;
-  --   Audio_DMA_Out_Channel   : DMA_Channel_Selector renames Channel_3;
+   --  --  Audio DMA configuration
+   --  Audio_DMA               : DMA_Controller renames DMA_2;
+   --  Audio_Out_DMA_Interrupt : Ada.Interrupts.Interrupt_ID renames
+   --                              Ada.Interrupts.Names.DMA2_Stream4_Interrupt;
+   --  Audio_DMA_Out_Stream    : DMA_Stream_Selector renames Stream_4;
+   --  Audio_DMA_Out_Channel   : DMA_Channel_Selector renames Channel_3;
 
-  --   Audio_Device : aliased Audio.WM8994_Audio_Device (Audio_I2C'Access);
+   --  Audio_Device : aliased Audio.WM8994_Audio_Device (Audio_I2C'Access);
 
-  --   --------------------------
-  --   -- micro SD card reader --
-  --   --------------------------
+   --  --------------------------
+   --  -- micro SD card reader --
+   --  --------------------------
 
-  --   SD_Detect_Pin     : STM32.GPIO.GPIO_Point renames PC13;
+   --  SD_Detect_Pin     : STM32.GPIO.GPIO_Point renames PC13;
 
-  --   SD_DMA            : DMA_Controller renames DMA_2;
-  --   SD_DMA_Rx_Stream  : DMA_Stream_Selector renames Stream_3;
-  --   SD_DMA_Rx_Channel : DMA_Channel_Selector renames Channel_4;
-  --   SD_DMA_Tx_Stream  : DMA_Stream_Selector renames Stream_6;
-  --   SD_DMA_Tx_Channel : DMA_Channel_Selector renames Channel_4;
-  --   SD_Pins           : constant GPIO_Points :=
-  --                         (PC8, PC9, PC10, PC11, PC12, PD2);
-  --   SD_Pins_AF        : constant GPIO_Alternate_Function := GPIO_AF_SDMMC1_12;
-  --   SD_Pins_2         : constant GPIO_Points := (1 .. 0 => <>);
-  --   SD_Pins_AF_2      : constant GPIO_Alternate_Function := GPIO_AF_SDMMC1_12;
-  --   SD_Interrupt      : Ada.Interrupts.Interrupt_ID renames
-  --                         Ada.Interrupts.Names.SDMMC1_Interrupt;
+   --  SD_DMA            : DMA_Controller renames DMA_2;
+   --  SD_DMA_Rx_Stream  : DMA_Stream_Selector renames Stream_3;
+   --  SD_DMA_Rx_Channel : DMA_Channel_Selector renames Channel_4;
+   --  SD_DMA_Tx_Stream  : DMA_Stream_Selector renames Stream_6;
+   --  SD_DMA_Tx_Channel : DMA_Channel_Selector renames Channel_4;
+   --  SD_Pins           : constant GPIO_Points :=
+   --                        (PC8, PC9, PC10, PC11, PC12, PD2);
+   --  SD_Pins_AF        : constant GPIO_Alternate_Function := GPIO_AF_SDMMC1_12;
+   --  SD_Pins_2         : constant GPIO_Points := (1 .. 0 => <>);
+   --  SD_Pins_AF_2      : constant GPIO_Alternate_Function := GPIO_AF_SDMMC1_12;
+   --  SD_Interrupt      : Ada.Interrupts.Interrupt_ID renames
+   --                        Ada.Interrupts.Names.SDMMC1_Interrupt;
 
-  --   DMA2_Stream3 : aliased DMA_Interrupt_Controller
-  --     (DMA_2'Access, Stream_3,
-  --      Ada.Interrupts.Names.DMA2_Stream3_Interrupt,
-  --      System.Interrupt_Priority'Last);
+   --  DMA2_Stream3 : aliased DMA_Interrupt_Controller
+   --    (DMA_2'Access, Stream_3,
+   --     Ada.Interrupts.Names.DMA2_Stream3_Interrupt,
+   --     System.Interrupt_Priority'Last);
 
-  --   DMA2_Stream6 : aliased DMA_Interrupt_Controller
-  --     (DMA_2'Access, Stream_6,
-  --      Ada.Interrupts.Names.DMA2_Stream6_Interrupt,
-  --      System.Interrupt_Priority'Last);
+   --  DMA2_Stream6 : aliased DMA_Interrupt_Controller
+   --    (DMA_2'Access, Stream_6,
+   --     Ada.Interrupts.Names.DMA2_Stream6_Interrupt,
+   --     System.Interrupt_Priority'Last);
 
-  --   SD_Rx_DMA_Int     : DMA_Interrupt_Controller renames DMA2_Stream3;
-  --   SD_Tx_DMA_Int     : DMA_Interrupt_Controller renames DMA2_Stream6;
+   --  SD_Rx_DMA_Int     : DMA_Interrupt_Controller renames DMA2_Stream3;
+   --  SD_Tx_DMA_Int     : DMA_Interrupt_Controller renames DMA2_Stream6;
 
-  --   SDCard_Device : aliased SDCard.SDCard_Controller (SDMMC_1'Access);
+   --  SDCard_Device : aliased SDCard.SDCard_Controller (SDMMC_1'Access);
 
    -----------------
    -- User button --

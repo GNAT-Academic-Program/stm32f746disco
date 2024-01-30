@@ -75,15 +75,15 @@ package body STM32.Board is
    begin
       Enable_Clock (SDRAM_PINS);
 
-      Configure_IO (SDRAM_Pins,
+      Configure_IO (SDRAM_PINS,
                     (Mode           => Mode_AF,
                      AF             => GPIO_AF_FMC_12,
                      AF_Speed       => Speed_50MHz,
                      AF_Output_Type => Push_Pull,
                      Resistors      => Pull_Up));
 
-      Lock (SDRAM_Pins);
-   end;
+      Lock (SDRAM_PINS);
+   end Initialize_SDRAM_GPIO;
 
    ----------------------
    -- Initialize_SDRAM --
@@ -102,7 +102,7 @@ package body STM32.Board is
                               SDRAM_CLOCK_Period,
                               SDRAM_Read_Burst,
                               SDRAM_Read_Pipe);
-   end;
+   end Initialize_SDRAM;
 
    -------------------------
    -- Initialize_I2C_GPIO --
@@ -188,9 +188,9 @@ package body STM32.Board is
       Points     : constant GPIO_Points (1 .. 3) :=
                      (if Id = USART_Id_1 then (PA9, PB7)     --  STLINK port
                       elsif Id = USART_Id_6 then (PC6, PC7)  --  CLK on PG6
-                      elsif Id = UART_ID_7 then (PF7, PF6)   --  RTS on PF8, CTS on PF9
+                      elsif Id = UART_Id_7 then (PF7, PF6)   --  RTS on PF8, CTS on PF9
                       else  (PA0, PA0));
-      AF : constant GPIO_Alternate_Function := 
+      AF : constant GPIO_Alternate_Function :=
                      (if Id in USART_Id_1 | UART_Id_5 then GPIO_AF_USART1_7
                       else GPIO_AF_UART4_8);
 
@@ -260,7 +260,57 @@ package body STM32.Board is
       );
 
       USART_Conf.Baud_Rate := Baud_Rate;
-      --  USART_Conf.Enable_DMA  := True;
+
+      Port.Configure (USART_Conf);
+   end Setup_USART;
+
+   procedure Setup_USART (Port                 : in out USART_Port_DMA'Class;
+                          TX, RX, CLK          : GPIO_Point;
+                          TX_AF, RX_AF, CLK_AF : GPIO_Alternate_Function;
+                          Baud_Rate            : UInt32;
+                          Synchronous          : Boolean := True)
+   is
+      USART_Conf : USART_Configuration;
+   begin
+      --  GPIO --
+      Enable_Clock (TX & RX & CLK);
+
+      Configure_IO (TX,
+                    (Mode           => Mode_AF,
+                     AF             => TX_AF,
+                     AF_Speed       => Speed_High,
+                     AF_Output_Type => Open_Drain,
+                     Resistors      => Floating));
+      Configure_IO (RX,
+                    (Mode           => Mode_AF,
+                     AF             => RX_AF,
+                     AF_Speed       => Speed_High,
+                     AF_Output_Type => Open_Drain,
+                     Resistors      => Floating));
+      Lock (TX & RX);
+
+      if Synchronous then
+         Configure_IO (CLK,
+                       (Mode           => Mode_AF,
+                        AF             => CLK_AF,
+                        AF_Speed       => Speed_High,
+                        AF_Output_Type => Open_Drain,
+                        Resistors      => Floating));
+         Lock (CLK);
+      end if;
+
+      -- USART --
+      Enable_Clock (Port);
+      delay until Clock + Milliseconds (200);
+      Reset (Port);
+
+      USART_Conf.Mode := (
+         if Synchronous then USART.Synchronous else USART.Asynchronous
+      );
+
+      USART_Conf.Baud_Rate := Baud_Rate;
+
+      USART_Conf.DMA_Config := USART_DMA_Config'Access;
 
       Port.Configure (USART_Conf);
    end Setup_USART;
@@ -271,13 +321,19 @@ package body STM32.Board is
                          Baud_Rate    : UInt32)
    is
    begin
-      Setup_USART (Port, TX, RX, PA0, TX_AF, RX_AF, GPIO_AF_USART1_7, Baud_Rate, False);
+      Setup_USART (
+         Port, TX,    RX,    PA0,
+               TX_AF, RX_AF, GPIO_AF_USART1_7, Baud_Rate, False
+      );
    end Setup_UART;
 
    procedure Setup_Serial (Baud_Rate : UInt32)
    is
    begin
-      Setup_UART (Serial, Serial_TX, Serial_RX, GPIO_AF_USART1_7, GPIO_AF_USART1_7, Baud_Rate);
+      Setup_UART (
+         Serial, Serial_TX,        Serial_RX,
+                 GPIO_AF_USART1_7, GPIO_AF_USART1_7, Baud_Rate
+      );
    end Setup_Serial;
 
    --------------------------------
