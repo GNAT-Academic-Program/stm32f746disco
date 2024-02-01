@@ -313,6 +313,9 @@ package body STM32.Board is
       USART_Conf.DMA_Config := USART_DMA_Config'Access;
 
       Port.Configure (USART_Conf);
+
+      -- Disable synchronous receive messages for other tasks to run
+      Port.Set_Receive_Polling_Threshold(0);
    end Setup_USART;
 
    procedure Setup_UART (Port         : in out USART_Port'Class;
