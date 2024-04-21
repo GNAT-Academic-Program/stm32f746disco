@@ -155,12 +155,6 @@ package STM32.Board is
                           Baud_Rate            : UInt32;
                           Synchronous          : Boolean := True);
 
-   procedure Setup_USART (Port                 : in out USART_Port_DMA'Class;
-                          TX, RX, CLK          : GPIO_Point;
-                          TX_AF, RX_AF, CLK_AF : GPIO_Alternate_Function;
-                          Baud_Rate            : UInt32;
-                          Synchronous          : Boolean := True);
-
    procedure Setup_UART (Port         : in out USART_Port'Class;
                          TX, RX       : GPIO_Point;
                          TX_AF, RX_AF : GPIO_Alternate_Function;

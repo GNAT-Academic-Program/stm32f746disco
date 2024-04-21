@@ -261,61 +261,14 @@ package body STM32.Board is
 
       USART_Conf.Baud_Rate := Baud_Rate;
 
-      Port.Configure (USART_Conf);
-   end Setup_USART;
-
-   procedure Setup_USART (Port                 : in out USART_Port_DMA'Class;
-                          TX, RX, CLK          : GPIO_Point;
-                          TX_AF, RX_AF, CLK_AF : GPIO_Alternate_Function;
-                          Baud_Rate            : UInt32;
-                          Synchronous          : Boolean := True)
-   is
-      USART_Conf : USART_Configuration;
-   begin
-      --  GPIO --
-      Enable_Clock (TX & RX & CLK);
-
-      Configure_IO (TX,
-                    (Mode           => Mode_AF,
-                     AF             => TX_AF,
-                     AF_Speed       => Speed_High,
-                     AF_Output_Type => Open_Drain,
-                     Resistors      => Floating));
-      Configure_IO (RX,
-                    (Mode           => Mode_AF,
-                     AF             => RX_AF,
-                     AF_Speed       => Speed_High,
-                     AF_Output_Type => Open_Drain,
-                     Resistors      => Floating));
-      Lock (TX & RX);
-
-      if Synchronous then
-         Configure_IO (CLK,
-                       (Mode           => Mode_AF,
-                        AF             => CLK_AF,
-                        AF_Speed       => Speed_High,
-                        AF_Output_Type => Open_Drain,
-                        Resistors      => Floating));
-         Lock (CLK);
+      if Port in USART_Port_DMA'Class then
+         USART_Conf.DMA_Config := USART_DMA_Config'Access;
+         -- Disable synchronous receive messages for other tasks to run
+         USART_Port_DMA'Class (Port) .Set_Receive_Polling_Threshold(0);
       end if;
 
-      -- USART --
-      Enable_Clock (Port);
-      delay until Clock + Milliseconds (200);
-      Reset (Port);
-
-      USART_Conf.Mode := (
-         if Synchronous then USART.Synchronous else USART.Asynchronous
-      );
-
-      USART_Conf.Baud_Rate := Baud_Rate;
-
-      USART_Conf.DMA_Config := USART_DMA_Config'Access;
-
       Port.Configure (USART_Conf);
 
-      -- Disable synchronous receive messages for other tasks to run
-      Port.Set_Receive_Polling_Threshold(0);
    end Setup_USART;
 
    procedure Setup_UART (Port         : in out USART_Port'Class;
